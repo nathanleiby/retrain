@@ -1,0 +1,35 @@
+{
+  "name": "retrain",
+  "version": "0.0.0",
+  "description": "Machine classifies, user gives feedback, then... retrain! ",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^2.4.3",
+    "jade": "^1.7.0"
+  },
+  "devDependencies": {
+    "lint": "^1.1.2",
+    "mocha": "^1.21.5"
+  },
+  "scripts": {
+    "test": " test",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nathanleiby/retrain"
+  },
+  "keywords": [
+    "machine",
+    "learning",
+    "classifier",
+    "train",
+    "training"
+  ],
+  "author": "Nathan Leiby",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nathanleiby/retrain/issues"
+  },
+  "homepage": "https://github.com/nathanleiby/retrain"
+}
