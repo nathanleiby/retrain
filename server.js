@@ -33,8 +33,8 @@ var random = require("random-js")(); // uses the nativeMath engine
   express = require('express');
 
   app = module.exports = express.createServer();
-
   app.configure(function() {
+    app.set('port', (process.env.PORT || 5000));
     app.set('views', __dirname + '/views');
     app.set('view engine', 'jade');
     app.use(express.bodyParser());
@@ -74,7 +74,6 @@ var random = require("random-js")(); // uses the nativeMath engine
   // app.post('/api/message/save', function(req, res) {
   //   //TODO: This will save user's reclassified data
   // });
-
-  app.listen(3000);
+  app.listen(process.env.PORT || 5000);
 
 }).call(this);
