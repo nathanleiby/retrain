@@ -5,7 +5,8 @@
   "main": "server.js",
   "dependencies": {
     "express": "^2.4.3",
-    "jade": "^1.7.0"
+    "jade": "^1.7.0",
+    "random-js": "^1.0.4"
   },
   "devDependencies": {
     "lint": "^1.1.2",

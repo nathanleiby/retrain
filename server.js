@@ -1,6 +1,35 @@
-(function() {
-  var app, express;
+var random = require("random-js")(); // uses the nativeMath engine
 
+(function() {
+  // ******************************** //
+  // Example Data
+  var categories = ["Mammal", "Reptile", "Bird"];
+  var messages = [
+    {
+      message: "Cat",
+      classification: {
+        "Mammal" : .6,
+        "Reptile" : .5,
+        "Bird" : .4
+      }
+    }, {
+      message: "Dog",
+      classification: {
+        "Mammal" : .5,
+        "Reptile" : .7,
+        "Bird" : .1
+      }
+    }
+  ]
+
+  var get_message_to_classify = function() {
+    var msgIndex = random.integer(0, messages.length-1);
+    console.log(msgIndex);
+    return messages[msgIndex];
+  }
+  // ******************************** //
+
+  var app, express;
   express = require('express');
 
   app = module.exports = express.createServer();
@@ -30,11 +59,21 @@
       title: 'Retrain',
       layout: false,
       locals: {
-        text_to_classify: "Dog",
-        categories: ["Mammal", "Reptile", "Bird"]
+        message_to_classify: get_message_to_classify(),
+        categories: categories
       }
     });
   });
+
+  // API responsible for outputting message to classify or saving
+  // a message that has been approved / recategorized by the user
+  app.get('/api/message/get', function(req, res) {
+    res.json(get_message_to_classify());
+  });
+
+  // app.post('/api/message/save', function(req, res) {
+  //   //TODO: This will save user's reclassified data
+  // });
 
   app.listen(3000);
 
