@@ -7,13 +7,12 @@ Goal
 
 Takes Text + Classification. Shows user the suggested classification. Allows user to correct the classification, saving this information in order to retrain the algorithm.
 
-
 The approach is to have a web app to do the training, and a few API endpoints that retrieve messages and user feedback.
 
 API
 
-- get_data
-- save_data
+- /api/message (GET)
+- /api/message (POST)
 
 Example:
 
