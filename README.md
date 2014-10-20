@@ -3,18 +3,23 @@ retrain
 
 Machine classifies, user gives feedback, then... retrain
 
-Goal
+## Demo
+
+- App - http://retrain.herokuapp.com/
+- an API endpoint - http://retrain.herokuapp.com/api/message/get
+
+## Goal
 
 Takes Text + Classification. Shows user the suggested classification. Allows user to correct the classification, saving this information in order to retrain the algorithm.
 
 The approach is to have a web app to do the training, and a few API endpoints that retrieve messages and user feedback.
 
-API
+## API
 
 - /api/message (GET)
 - /api/message (POST)
 
-Example:
+## Example:
 
 - classify based on mammal - 0-1, reptile 0-1, bird 0-1
 - for various input messages, classifier has following behavior 
@@ -23,6 +28,6 @@ Example:
 - so now, we want to reclassify cat as mammal
     - will need to be able to save back updated scores (mammal 1, reptile 0, bird 0)
 
-TBD:
+## TBD
 
 - How to tell it you’re “retraining” a row? Need to have “machine" and “user” response… in case where machine response == user response, then the retraining is a no-op
