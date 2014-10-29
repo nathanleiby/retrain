@@ -7,15 +7,19 @@ var _displayMessage = function(data) {
   $("#messageText").text(data.text)
 
   // Display machine suggested category
-  $("#suggestedClassification").text(data.category + " : " + data.confidence);
-  // TODO: update pre-selected item in the dropdown menu to match machine suggestion
-  // $( "#categorySelect" ).val(human_label)
+  var confidence = String(data.confidence).substr(0,5);
+  $("#suggestedClassification").text(data.category + " (Confidence: " + confidence + ")");
+  // String(data.confidence).substr(0,3) // TODO: Display confidence
+
+  // Update pre-selected item in the dropdown menu to match machine suggestion
+  var machine_suggestion = data.category.substr(0,1); // First letter corresponds to a top_level category suggestion
+  $( "#categorySelect" ).val(machine_suggestion)
 
   // Display human annotated category, if any
   var human_label = "";
   if (data['human_labelled_category'] !== undefined && data['human_labelled_category'] !== null) {
     human_label = " (Manual label: " + data['human_labelled_category'] + ")";
-    // TODO: Need to also
+    // Overwrite machine suggestion with human label
     $( "#categorySelect" ).val(data['human_labelled_category']);
   }
   $("#humanClassification").text(human_label);

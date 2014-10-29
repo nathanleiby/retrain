@@ -4,16 +4,24 @@ var CLASSIFIER_URL = process.env.CLASSIFIER_URL;
 var util = require('util');
 var urlencode = require('urlencode');
 var _ = require('underscore')
+var fs = require('fs')
 
 // ******************************** //
 // TODO: Examples
 // These methods and data must be adapted based on the
 // actual classifier's API
 
-var categories = ["Mammal", "Reptile", "Bird"];
+var taxonomy = JSON.parse(fs.readFileSync('PCS_Subject_Taxonomy.json'));
+top_level_keys = _.filter(_.keys(taxonomy), function(k) {
+  return k.length == 1;
+});
+top_level_categories = _.pick(taxonomy, top_level_keys);
+
+var categories = top_level_categories;
 var messages = [
-  "Wild cats are best at their most feral",
-  "Dogs are superior because of their droopy ears",
+  "I'd like to teach the world to sing in perfect harmony. I'd like to hold it in my arms, and keep it company",
+  "Lions and tigers and bears, oh my!",
+  "We the People of the United States, in Order to form a more perfect Union, establish Justice, insure domestic Tranquility, provide for the common defence, promote the general Welfare, and secure the Blessings of Liberty to ourselves and our Posterity, do ordain and establish this Constitution for the United States of America",
 ]
 
 // Hacky: maintain state of messages that we have already labeled.

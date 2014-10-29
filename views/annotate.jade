@@ -34,8 +34,8 @@ html
             p
             div
               select#categorySelect
-                each category, i in categories
-                  option(value=i) #{category}
+                each category, key in categories
+                  option(value=key) #{key} - #{category}
           .done
             input.nextTask(type='submit', value='Save')
           p
