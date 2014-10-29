@@ -59,8 +59,8 @@ var classify = function(msg, cb) {
   express = require('express');
 
   app = module.exports = express.createServer();
-
   app.configure(function() {
+    app.set('port', (process.env.PORT || 5000));
     app.set('views', __dirname + '/views');
     app.set('view engine', 'jade');
     app.use(express.bodyParser());
@@ -116,7 +116,6 @@ var classify = function(msg, cb) {
   // app.post('/api/message/save', function(req, res) {
   //   //TODO: This will save user's reclassified data
   // });
-
-  app.listen(3000);
+  app.listen(process.env.PORT || 5000);
 
 }).call(this);
