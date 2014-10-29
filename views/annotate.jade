@@ -1,8 +1,10 @@
 doctype
 html
-
+  script(type='text/javascript' src='vendor/jquery/jquery-1.11.1.min.js')
+  script(type='text/javascript' src='scripts/client.js')
   body!=body
-    #container
+    //- starts hidden
+    #container(style='display: none;')
       #header
         h1 Retrain
       #main
@@ -11,12 +13,14 @@ html
 
         #annotate_messages
           .label
-            | Message:
+            | Text:
           #message
-            p#messageHolder()
-              h3 #{message_to_classify.text}
+            p.messageHolder()
+              h4#messageText
             //- suggestions
             p#messageClassifications
+              | Machine suggestion:
+              h4#suggestedClassification
             //- each val, key in message_to_classify.classification
             //-   | #{key} : #{val}
             //-   br
@@ -24,9 +28,6 @@ html
         hr
 
         #category
-          .label
-            | Category
-            p
           .instructions
             | Check if the classification is correct. If so, click "save". If not, update the category, then click "save".
             p
@@ -35,11 +36,12 @@ html
                 each category, i in categories
                   option(value=i) #{category}
           .done
-            input.nexttask(type='submit', value='Save')
+            input.nextTask(type='submit', value='Save')
           p
           .floatfix
 
         #footer
           - var currentYear = new Date().getFullYear();
+          br
           | © ImpactLab #{currentYear}
 

@@ -81,13 +81,10 @@ var classify = function(msg, cb) {
   });
 
   app.get('/', function(req, res) {
-    // Get a message to classify based on UX (JavaScript callbacks)...
-    // - click "next" button in page to switch through messages
     return res.render('annotate', {
       title: 'Retrain',
       layout: false,
       locals: {
-        message_to_classify: getMessageToClassify(),
         categories: categories
       }
     });
@@ -96,7 +93,7 @@ var classify = function(msg, cb) {
   // API responsible for outputting message to classify or saving
   // a message that has been approved / recategorized by the user
   app.get('/api/message', function(req, res) {
-    // Gets a message
+    // Gets a message that needs to be classified
     var message = getMessageToClassify();
 
     // Classifies that message
@@ -113,7 +110,7 @@ var classify = function(msg, cb) {
     });
   });
 
-  // app.post('/api/message/save', function(req, res) {
+  // app.post('/api/message', function(req, res) {
   //   //TODO: This will save user's reclassified data
   // });
   app.listen(process.env.PORT || 5000);
