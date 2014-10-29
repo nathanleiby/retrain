@@ -3,7 +3,7 @@ var quest = require("quest");
 var CLASSIFIER_URL = process.env.CLASSIFIER_URL;
 var util = require('util');
 var urlencode = require('urlencode');
-
+var _ = require('underscore')
 
 // ******************************** //
 // TODO: Examples
@@ -13,8 +13,13 @@ var urlencode = require('urlencode');
 var categories = ["Mammal", "Reptile", "Bird"];
 var messages = [
   "Wild cats are best at their most feral",
-  "Dogs are superior for the droopy ears",
+  "Dogs are superior because of their droopy ears",
 ]
+
+// Hacky: maintain state of messages that we have already labeled.
+// Maps from message text to human label.
+var humanLabeledMessages = {};
+
 var getMessageToClassify = function() {
   var msgIndex = random.integer(0, messages.length-1);
   return { "text" : messages[msgIndex] }
@@ -29,7 +34,7 @@ var formatClassifierOutput = function(body) {
   var formatted = {
     "text": jsonBody['data'][2], // should be identical to msg
     "category": jsonBody['data'][0],
-    "confidence": jsonBody['data'][1]
+    "confidence": jsonBody['data'][1],
   };
   return formatted;
 };
@@ -48,6 +53,11 @@ var classify = function(msg, cb) {
       return cb(err);
     } else {
       var classifier_prediction = formatClassifierOutput(body);
+      var human_label = null;
+      if(humanLabeledMessages[msg['text']] !== undefined) {
+        human_label = humanLabeledMessages[msg['text']];
+      }
+      classifier_prediction['human_labelled_category'] = human_label;
       return cb(null, classifier_prediction);
     }
   });
@@ -110,9 +120,13 @@ var classify = function(msg, cb) {
     });
   });
 
-  // app.post('/api/message', function(req, res) {
-  //   //TODO: This will save user's reclassified data
-  // });
+  app.post('/api/message', function(req, res) {
+    //TODO: This will save user's reclassified data
+    console.log("server.js: POST to /api/message");
+    var jsonBody = req.body;
+    humanLabeledMessages[jsonBody['text']] = jsonBody['category'];
+    res.status(200).send();
+  });
   app.listen(process.env.PORT || 5000);
 
 }).call(this);

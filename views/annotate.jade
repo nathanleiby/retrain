@@ -21,6 +21,7 @@ html
             p#messageClassifications
               | Machine suggestion:
               h4#suggestedClassification
+              h4#humanClassification
             //- each val, key in message_to_classify.classification
             //-   | #{key} : #{val}
             //-   br
@@ -32,7 +33,7 @@ html
             | Check if the classification is correct. If so, click "save". If not, update the category, then click "save".
             p
             div
-              select
+              select#categorySelect
                 each category, i in categories
                   option(value=i) #{category}
           .done

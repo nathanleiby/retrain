@@ -8,6 +8,7 @@
     "jade": "^1.7.0",
     "quest": "^0.2.8",
     "random-js": "^1.0.4",
+    "underscore": "^1.7.0",
     "urlencode": "^0.2.0"
   },
   "devDependencies": {
