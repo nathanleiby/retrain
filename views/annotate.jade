@@ -14,11 +14,12 @@ html
             | Message:
           #message
             p#messageHolder()
-              h3 #{message_to_classify.message}
+              h3 #{message_to_classify.text}
+            //- suggestions
             p#messageClassifications
-            each val, key in message_to_classify.classification
-              | #{key} : #{val}
-              br
+            //- each val, key in message_to_classify.classification
+            //-   | #{key} : #{val}
+            //-   br
 
         hr
 

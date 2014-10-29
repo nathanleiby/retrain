@@ -1,29 +1,43 @@
 retrain
 =======
 
-Machine classifies, user gives feedback, then... retrain
+Machine classifies, user gives feedback, then... retrain!
 
-Goal
+## Goal
 
 Takes Text + Classification. Shows user the suggested classification. Allows user to correct the classification, saving this information in order to retrain the algorithm.
 
+The approach is to have a web app to do the training, and a few API endpoints 
+that retrieve messages and user feedback.
 
-The approach is to have a web app to do the training, and a few API endpoints that retrieve messages and user feedback.
+## How to Run
 
-API
+### Locally
 
-- get_data
-- save_data
+```
+export CLASSIFIER_URL=<base_url_of_classifer>
+make start
+```
 
-Example:
+### Deploying to Heroku
 
-- classify based on mammal - 0-1, reptile 0-1, bird 0-1
-- for various input messages, classifier has following behavior 
-- input: chicken -> mammal 0, reptile .5, bird .75 … guess is bird [OK]
-- input: cat -> mammal .5, reptile .75, bird .6 … guess is reptile [Wrong]
-- so now, we want to reclassify cat as mammal
-    - will need to be able to save back updated scores (mammal 1, reptile 0, bird 0)
+Has been tested on Heroku. Steps to [get started with Heroku and Node.js](https://devcenter.heroku.com/articles/getting-started-with-nodejs).
 
-TBD:
+## Development
 
-- How to tell it you’re “retraining” a row? Need to have “machine" and “user” response… in case where machine response == user response, then the retraining is a no-op
+Running server in Dev mode.
+
+Recommend using [node-supervisor](https://github.com/isaacs/node-supervisor), which will auto restart the server on code changes, then running:
+
+```
+CLASSIFIER_URL=x supervisor -e 'js|node|coffee' server.js
+```
+
+## Testing
+
+Tests are run with Mocha.
+
+```
+make test
+```
+

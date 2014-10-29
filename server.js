@@ -1,33 +1,59 @@
 var random = require("random-js")(); // uses the nativeMath engine
+var quest = require("quest");
+var CLASSIFIER_URL = process.env.CLASSIFIER_URL;
+var util = require('util');
+var urlencode = require('urlencode');
+
+
+// ******************************** //
+// TODO: Examples
+// These methods and data must be adapted based on the
+// actual classifier's API
+
+var categories = ["Mammal", "Reptile", "Bird"];
+var messages = [
+  "Wild cats are best at their most feral",
+  "Dogs are superior for the droopy ears",
+]
+var getMessageToClassify = function() {
+  var msgIndex = random.integer(0, messages.length-1);
+  return { "text" : messages[msgIndex] }
+}
+
+// Expected format of a classification return from current Python classifier
+//              category    confidence      text
+//  { "data": [ "X30", 0.29850746268656714, "WhatIsThe" ] }
+//
+var formatClassifierOutput = function(body) {
+  var jsonBody = JSON.parse(body);
+  var formatted = {
+    "text": jsonBody['data'][2], // should be identical to msg
+    "category": jsonBody['data'][0],
+    "confidence": jsonBody['data'][1]
+  };
+  return formatted;
+};
+// ******************************** //
+
+// Takes a message and returns it with a category label and confidence
+// returns:
+//  { "text" : "message_text", "category": "A12", "confidence" : 0.15 }
+var classify = function(msg, cb) {
+  console.log("classifying:", util.inspect(msg));
+  var message_text = msg['text'];
+  var full_url = CLASSIFIER_URL + urlencode(message_text);
+  console.log("full_url:", full_url)
+  quest(full_url, function(err, response, body) {
+    if(err) {
+      return cb(err);
+    } else {
+      var classifier_prediction = formatClassifierOutput(body);
+      return cb(null, classifier_prediction);
+    }
+  });
+};
 
 (function() {
-  // ******************************** //
-  // Example Data
-  var categories = ["Mammal", "Reptile", "Bird"];
-  var messages = [
-    {
-      message: "Cat",
-      classification: {
-        "Mammal" : .6,
-        "Reptile" : .5,
-        "Bird" : .4
-      }
-    }, {
-      message: "Dog",
-      classification: {
-        "Mammal" : .5,
-        "Reptile" : .7,
-        "Bird" : .1
-      }
-    }
-  ]
-
-  var get_message_to_classify = function() {
-    var msgIndex = random.integer(0, messages.length-1);
-    console.log(msgIndex);
-    return messages[msgIndex];
-  }
-  // ******************************** //
 
   var app, express;
   express = require('express');
@@ -55,11 +81,13 @@ var random = require("random-js")(); // uses the nativeMath engine
   });
 
   app.get('/', function(req, res) {
+    // Get a message to classify based on UX (JavaScript callbacks)...
+    // - click "next" button in page to switch through messages
     return res.render('annotate', {
       title: 'Retrain',
       layout: false,
       locals: {
-        message_to_classify: get_message_to_classify(),
+        message_to_classify: getMessageToClassify(),
         categories: categories
       }
     });
@@ -67,8 +95,22 @@ var random = require("random-js")(); // uses the nativeMath engine
 
   // API responsible for outputting message to classify or saving
   // a message that has been approved / recategorized by the user
-  app.get('/api/message/get', function(req, res) {
-    res.json(get_message_to_classify());
+  app.get('/api/message', function(req, res) {
+    // Gets a message
+    var message = getMessageToClassify();
+
+    // Classifies that message
+    classify(message, function(err, result) {
+      console.log("Result", result);
+
+      // If classifer fails, returns an error
+      if (err) {
+        res.status(400).send('Failed to get message')
+      } else {
+        // Return message with classifiation
+        res.json(result);
+      }
+    });
   });
 
   // app.post('/api/message/save', function(req, res) {
