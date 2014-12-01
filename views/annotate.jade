@@ -37,6 +37,9 @@ html
               select#categorySelect
                 each category, key in categories
                   option(value=key) #{key} - #{category}
+              select#subcategorySelect
+                each category, key in sub_categories
+                  option(value=key) #{key} - #{category}
           .done
             input.nextTask(type='submit', value='Save')
           p

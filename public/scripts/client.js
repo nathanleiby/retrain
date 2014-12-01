@@ -21,8 +21,11 @@ var _displayMessage = function(data) {
   $("#suggestedClassification").html(suggestedClassificationHtml);
 
   // Update pre-selected item in the dropdown menu to match most-likely machine suggestion
-  var machine_suggestion = suggestions[0].category.substr(0,1); // First letter corresponds to a top_level category suggestion
-  $( "#categorySelect" ).val(machine_suggestion)
+  var machine_suggestion = suggestions[0].category;
+  // First letter corresponds to a top_level category suggestion
+  $( "#categorySelect" ).val(machine_suggestion.substr(0,1))
+  $( "#categorySelect" ).change() // Trigger change() event to prompt update to subcategory options
+  $( "#subcategorySelect" ).val(machine_suggestion)
 
   // Display human annotated category, if any
   var human_label = "";
@@ -56,7 +59,7 @@ var _readMessageValuesFromUI = function() {
   return {
     "text" : $("#messageText").text(),
     "grant_id" : $("#grantId").text(),
-    "category" : $( "#categorySelect" ).val(),
+    "category" : $( "#subcategorySelect" ).val(),
   };
 }
 
@@ -67,8 +70,21 @@ var postMessage = function() {
   }, "json");
 }
 
+// displaySubcategories - takes a category_id (a letter) and updates subcategory dropdown
+// to only show appropriate choices for that category
+var displaySubcategories = function(category_id) {
+  $('#subcategorySelect option').hide()
+  // Show ones whose category starts with category_id
+  $('#subcategorySelect option[value^="' + category_id + '"]').show()
+}
+
 // On page ready...
 $(function() {
+  // update subcategories when main category is change
+  $('#categorySelect').change(function() {
+    displaySubcategories(this.value);
+  });
+
   // Load first message
   getMessage();
   $('#container').show();

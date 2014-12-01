@@ -7,13 +7,11 @@ var _ = require('underscore');
 var fs = require('fs');
 
 var taxonomy = JSON.parse(fs.readFileSync('PCS_Subject_Taxonomy.json'));
-top_level_keys = _.filter(_.keys(taxonomy), function(k) {
+var top_level_keys = _.filter(_.keys(taxonomy), function(k) {
   return k.length == 1;
 });
-// TODO: support lower level categories - relate to top level
-top_level_categories = _.pick(taxonomy, top_level_keys);
-
-var categories = top_level_categories;
+var categories  = _.pick(taxonomy, top_level_keys);
+var sub_categories = _.omit(taxonomy, top_level_keys);
 
 // Hacky: maintain state of messages that we have already labeled.
 // Maps from message text to human label.
@@ -159,7 +157,8 @@ var label = function(data, cb) {
       title: 'Retrain',
       layout: false,
       locals: {
-        categories: categories
+        categories: categories,
+        sub_categories: sub_categories
       }
     });
   });
