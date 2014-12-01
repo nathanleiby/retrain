@@ -4,8 +4,8 @@ var _displayMessage = function(data) {
   var suggestions = data.classifications;
   var grant_id = data.grant_id;
 
-  // TODO: Set message ID in hidden field
   $("#messageText").text(text);
+  // TODO: Make message ID a hidden field
   $("#grantId").text(grant_id);
 
   // Display machine suggestion(s)
@@ -25,14 +25,13 @@ var _displayMessage = function(data) {
   $( "#categorySelect" ).val(machine_suggestion)
 
   // Display human annotated category, if any
-  // TODO: we don't return human label right now
-  // var human_label = "";
-  // if (data['human_labelled_category'] !== undefined && data['human_labelled_category'] !== null) {
-  //   human_label = " (Manual label: " + data['human_labelled_category'] + ")";
-  //   // Overwrite machine suggestion with human label
-  //   $( "#categorySelect" ).val(data['human_labelled_category']);
-  // }
-  // $("#humanClassification").text(human_label);
+  var human_label = "";
+  if (data['human_labelled_category'] !== undefined && data['human_labelled_category'] !== null) {
+    human_label = " (Manual label: " + data['human_labelled_category'] + ")";
+    // Overwrite machine suggestion with human label
+    $( "#categorySelect" ).val(data['human_labelled_category']);
+  }
+  $("#humanClassification").text(human_label);
 }
 
 // Fetch message from api/message endpoint
@@ -54,8 +53,6 @@ var getMessage = function() {
 var _readMessageValuesFromUI = function() {
   // TODO: read message ID in hidden field
   // TODO: read message text (optional if ID exists)
-  // TODO: read value from dropdown menu
-
   return {
     "text" : $("#messageText").text(),
     "grant_id" : $("#grantId").text(),
@@ -65,7 +62,6 @@ var _readMessageValuesFromUI = function() {
 
 var postMessage = function() {
   var data = _readMessageValuesFromUI();
-
   $.post("api/message", data, function() {
     console.log( "POST api/message: saving a text classification..." );
   }, "json");
@@ -77,7 +73,8 @@ $(function() {
   getMessage();
   $('#container').show();
 
-  // Setup listeners
+  // Setup listeners - when user clicks next task
+  // save current Message and get the next Message
   $('input.nextTask').click(function() {
     console.log("clicked save");
     postMessage();
