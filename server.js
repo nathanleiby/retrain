@@ -1,10 +1,10 @@
 var random = require("random-js")(); // uses the nativeMath engine
-var quest = require("quest");
+var request = require("quest");
 var CLASSIFIER_URL = process.env.CLASSIFIER_URL;
 var util = require('util');
 var urlencode = require('urlencode');
-var _ = require('underscore')
-var fs = require('fs')
+var _ = require('underscore');
+var fs = require('fs');
 
 // ******************************** //
 // TODO: Examples
@@ -28,42 +28,74 @@ var messages = [
 // Maps from message text to human label.
 var humanLabeledMessages = {};
 
-var getMessageToClassify = function() {
-  var msgIndex = random.integer(0, messages.length-1);
-  return { "text" : messages[msgIndex] }
+// Expect to received a message pulled from the database that looks like:
+// {
+//   "activity_override3": "B20", // human label
+//   "text": "This is a grant talking about something",
+//   "amount": 50000,
+//   "recipient_name": "etcetc",
+//   "grant_year": 2007,
+//   "gm_key": "etc",
+//   "number_retrains": null,
+//   "recipient_unit": "etcetc",
+//   "recipient_key": 99987,
+//   "grant_duration": 1.00,
+//   "grant_key": 12345
+// }
+var getMessageToClassify = function(cb) {
+  // var msgIndex = random.integer(0, messages.length-1);
+  // return { "text" : messages[msgIndex] }
+
+  // Get text to classify
+  var get_text_options = {
+    uri: CLASSIFIER_URL + "/text",
+    method: "GET"
+  }
+  request(get_text_options, function(err, response, body) {
+    if(err) {
+      return cb(err);
+    } else {
+      var json_body = JSON.parse(body);
+      var message_text = json_body['text'];
+      return cb(null, message_text);
+    }
+  });
 }
 
 // Expected format of a classification return from current Python classifier
-//              category    confidence      text
-//  { "data": [ "X30", 0.29850746268656714, "WhatIsThe" ] }
+//  {"svm": [{"category": "X20", "confidence": 0.11, "rank" : 0, {"category": "X21", "confidence": 0.11, "rank": 1}, {"category": "T70", "confidence": 0.11, "rank": 2}, {"category": "P27", "confidence": 0.11, "rank": 3}, {"category": "P60", "confidence": 0.11, "rank": 4}, {"category": "B82", "confidence": 0.11, "rank": 5}, {"category": "S99", "confidence": 0.11, "rank": 6}, {"category": "Q30", "confidence": 0.11, "rank": 7}, {"category": "C30", "confidence": 0.11, "rank": 8}, {"category": "M25", "confidence": 0.11, "rank": 9}]}
 //
 var formatClassifierOutput = function(body) {
   var jsonBody = JSON.parse(body);
-  var formatted = {
-    "text": jsonBody['data'][2], // should be identical to msg
-    "category": jsonBody['data'][0],
-    "confidence": jsonBody['data'][1],
-  };
-  return formatted;
+  return jsonBody['svm'];
 };
 // ******************************** //
 
 // Takes a message and returns it with a category label and confidence
 // returns:
 //  { "text" : "message_text", "category": "A12", "confidence" : 0.15 }
-var classify = function(msg, cb) {
-  console.log("classifying:", util.inspect(msg));
-  var message_text = msg['text'];
-  var full_url = CLASSIFIER_URL + urlencode(message_text);
-  console.log("full_url:", full_url)
-  quest(full_url, function(err, response, body) {
+var classify = function(message_text, cb) {
+  console.log("classify()", message_text);
+  var post_classify_options = {
+    uri: CLASSIFIER_URL + "/classify",
+    method: "POST",
+    body: JSON.stringify({
+      "text": message_text,
+      "npredict": '10'
+    }),
+    headers: {'Content-Type': 'application/json'},
+    // TODO: prefer to use json: true but accepted as JSON by flask server
+  };
+
+  request(post_classify_options, function(err, response, body) {
     if(err) {
       return cb(err);
     } else {
       var classifier_prediction = formatClassifierOutput(body);
+      // Allow displaying a label applied by human annotators
       var human_label = null;
-      if(humanLabeledMessages[msg['text']] !== undefined) {
-        human_label = humanLabeledMessages[msg['text']];
+      if(humanLabeledMessages[message_text] !== undefined) {
+        human_label = humanLabeledMessages[message_text];
       }
       classifier_prediction['human_labelled_category'] = human_label;
       return cb(null, classifier_prediction);
@@ -111,20 +143,34 @@ var classify = function(msg, cb) {
   // API responsible for outputting message to classify or saving
   // a message that has been approved / recategorized by the user
   app.get('/api/message', function(req, res) {
+    console.log("get message");
     // Gets a message that needs to be classified
-    var message = getMessageToClassify();
-
-    // Classifies that message
-    classify(message, function(err, result) {
-      console.log("Result", result);
-
-      // If classifer fails, returns an error
+    // TODO: Async waterfall
+    getMessageToClassify(function(err, message_text){
       if (err) {
-        res.status(400).send('Failed to get message')
-      } else {
-        // Return message with classifiation
-        res.json(result);
+        res.status(400).send('Failed to get message');
+        return;
       }
+
+      // Classifies that message
+      console.log("classify message");
+      classify(message_text, function(err, classifications) {
+        var text_and_classifications = {
+          'text' : message_text,
+          'classifications' : classifications
+        };
+
+        // If classifer fails, returns an error
+        if (err) {
+          res.status(400).send('Failed to classify message')
+          return;
+        } else {
+          // Return message with classifiation
+          res.json(text_and_classifications);
+          return;
+        }
+      });
+
     });
   });
 
