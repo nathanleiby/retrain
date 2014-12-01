@@ -6,23 +6,14 @@ var urlencode = require('urlencode');
 var _ = require('underscore');
 var fs = require('fs');
 
-// ******************************** //
-// TODO: Examples
-// These methods and data must be adapted based on the
-// actual classifier's API
-
 var taxonomy = JSON.parse(fs.readFileSync('PCS_Subject_Taxonomy.json'));
 top_level_keys = _.filter(_.keys(taxonomy), function(k) {
   return k.length == 1;
 });
+// TODO: support lower level categories - relate to top level
 top_level_categories = _.pick(taxonomy, top_level_keys);
 
 var categories = top_level_categories;
-var messages = [
-  "I'd like to teach the world to sing in perfect harmony. I'd like to hold it in my arms, and keep it company",
-  "Lions and tigers and bears, oh my!",
-  "We the People of the United States, in Order to form a more perfect Union, establish Justice, insure domestic Tranquility, provide for the common defence, promote the general Welfare, and secure the Blessings of Liberty to ourselves and our Posterity, do ordain and establish this Constitution for the United States of America",
-]
 
 // Hacky: maintain state of messages that we have already labeled.
 // Maps from message text to human label.
@@ -43,9 +34,6 @@ var humanLabeledMessages = {};
 //   "grant_key": 12345
 // }
 var getMessageToClassify = function(cb) {
-  // var msgIndex = random.integer(0, messages.length-1);
-  // return { "text" : messages[msgIndex] }
-
   // Get text to classify
   var get_text_options = {
     uri: CLASSIFIER_URL + "/text",
@@ -56,8 +44,11 @@ var getMessageToClassify = function(cb) {
       return cb(err);
     } else {
       var json_body = JSON.parse(body);
-      var message_text = json_body['text'];
-      return cb(null, message_text);
+      var result = {
+        'text' : json_body['text'],
+        'grant_id' : json_body['grant_key']
+      }
+      return cb(null, result);
     }
   });
 }
@@ -99,6 +90,39 @@ var classify = function(message_text, cb) {
       }
       classifier_prediction['human_labelled_category'] = human_label;
       return cb(null, classifier_prediction);
+    }
+  });
+};
+
+var label = function(data, cb) {
+  console.log("label()", data);
+  var post_label_options = {
+    uri: CLASSIFIER_URL + "/label",
+    method: "POST",
+    body: JSON.stringify({
+      // Required
+      'grant_id': data['grant_id'],
+      'activity': data['category'],
+
+      // TODO: Add concept of users
+      // 'user_id': '90001',
+
+      // TODO: Remove description, which is available via JOIN
+      'description': data['text'],
+
+      // TODO: Record model's version and guess(es)
+      // 'activity_svm': 'W21',
+      // 'activity_rule': 'W11',
+      // 'model_version': '0.07'
+    }),
+    headers: {'Content-Type': 'application/json'},
+  };
+
+  request(post_label_options, function(err, response, body) {
+    if(err) {
+      return cb(err);
+    } else {
+      return cb(null);
     }
   });
 };
@@ -146,7 +170,7 @@ var classify = function(message_text, cb) {
     console.log("get message");
     // Gets a message that needs to be classified
     // TODO: Async waterfall
-    getMessageToClassify(function(err, message_text){
+    getMessageToClassify(function(err, message){
       if (err) {
         res.status(400).send('Failed to get message');
         return;
@@ -154,9 +178,10 @@ var classify = function(message_text, cb) {
 
       // Classifies that message
       console.log("classify message");
-      classify(message_text, function(err, classifications) {
+      classify(message['text'], function(err, classifications) {
         var text_and_classifications = {
-          'text' : message_text,
+          'text' : message['text'],
+          'grant_id' : message['grant_id'],
           'classifications' : classifications
         };
 
@@ -175,11 +200,28 @@ var classify = function(message_text, cb) {
   });
 
   app.post('/api/message', function(req, res) {
-    //TODO: This will save user's reclassified data
     console.log("server.js: POST to /api/message");
     var jsonBody = req.body;
+    // {
+    //   "text" : "foo",
+    //   "grant_id" : "bar",
+    //   "category" : "baz"
+    // }
+    console.log(jsonBody);
+    // Save in session // TODO: remove and look this up in DB
     humanLabeledMessages[jsonBody['text']] = jsonBody['category'];
-    res.status(200).send();
+
+    // Write user label to DB
+    label(jsonBody, function(err, classifications) {
+        // If classifer fails, returns an error
+        if (err) {
+          res.status(400).send('Failed to classify message')
+          return;
+        } else {
+          res.status(200).send();
+          return;
+        }
+      });
   });
   app.listen(process.env.PORT || 5000);
 

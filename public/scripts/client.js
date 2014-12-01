@@ -2,9 +2,11 @@
 var _displayMessage = function(data) {
   var text = data.text;
   var suggestions = data.classifications;
+  var grant_id = data.grant_id;
 
   // TODO: Set message ID in hidden field
-  $("#messageText").text(data.text)
+  $("#messageText").text(text);
+  $("#grantId").text(grant_id);
 
   // Display machine suggestion(s)
   var suggestedClassificationHtml = "";
@@ -56,6 +58,7 @@ var _readMessageValuesFromUI = function() {
 
   return {
     "text" : $("#messageText").text(),
+    "grant_id" : $("#grantId").text(),
     "category" : $( "#categorySelect" ).val(),
   };
 }

@@ -12,19 +12,20 @@ html
         hr
 
         #annotate_messages
-          .label
-            | Text:
           #message
-            p.messageHolder()
+            //- TODO: hidden
+            | Grant Id:
+            p
+              h4#grantId
+
+            | Text:
+            p
               h4#messageText
-            //- suggestions
+
             p#messageClassifications
               | Machine suggestion(s):
               h4#suggestedClassification
               h4#humanClassification
-            //- each val, key in message_to_classify.classification
-            //-   | #{key} : #{val}
-            //-   br
 
         hr
 
